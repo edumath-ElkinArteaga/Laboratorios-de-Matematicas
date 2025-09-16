@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reino de los Números - Batalla Épica</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Comic Sans MS', cursive, Arial, sans-serif;
+            background: linear-gradient(45deg, #1e3c72, #2a5298, #6dd5ed, #ffffff);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            overflow-x: hidden;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .screen { display: none; min-height: 100vh; }
+        .screen.active { display: block; }
+        
+        /* Pantalla de Inicio */
+        .inicio-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+        
+        .inicio-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            padding: 50px;
+            border: 3px solid rgba(255,255,255,0.3);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .titulo-principal {
+            font-size: 3.5em;
+            background: linear-gradient(45deg, #FFD700, #FFA500, #FF6347);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .personaje-inicio {
+            font-size: 8em;
+            animation: bounce 1.5s infinite;
+            margin: 20px 0;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-30px); }
+            60% { transform: translateY(-15px); }
+        }
+        
+        .input-aventurero {
+            padding: 20px;
+            font-size: 20px;
+            border: 3px solid #FFD700;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px;
+            background: rgba(255,255,255,0.9);
+            font-weight: bold;
+            width: 300px;
+        }
+        
+        .btn-aventura {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+        
+        .btn-aventura:hover {
+            transform: scale(1.1);
+        }
+        
+        .btn-aventura:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Mapa del Reino */
+        .mapa-reino {
+            background: linear-gradient(180deg, #87CEEB 0%, #98FB98 50%, #DEB887 100%);
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        .hud-aventurero {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 5px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        
+        .mapa-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px 20px;
+        }
+        
+        .titulo-reino {
+            font-size: 3em;
+            color: #2C3E50;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .aventurero {
+            font-size: 4em;
+            animation: walk 2s infinite;
+            margin: 20px 0;
+        }
+        
+        @keyframes walk {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .camino {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            max-width: 800px;
+        }
+        
+        .nivel {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 18px;
+            transition: all 0.3s;
+            position: relative;
+            border: 4px solid;
+        }
+        
+        .nivel:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .nivel.desbloqueado {
+            background: linear-gradient(45deg, #32CD32, #228B22);
+            border-color: #FFD700;
+            animation: pulse 2s infinite;
+        }
+        
+        .nivel.bloqueado {
+            background: linear-gradient(45deg, #696969, #2F4F4F);
+            border-color: #A9A9A9;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .nivel.completado {
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            border-color: #FF6347;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(50, 205, 50, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(50, 205, 50, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(50, 205, 50, 0); }
+        }
+        
+        .nivel-emoji { font-size: 2em; margin-bottom: 5px; }
+        .nivel-nombre { font-size: 12px; text-align: center; }
+        
+        .estrella-progreso {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 1.5em;
+            animation: twinkle 1s infinite;
+        }
+        
+        @keyframes twinkle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        .dialogo-npc {
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin: 20px 0;
+            border: 3px solid #FFD700;
+        }
+        
+        .npc-sprite {
+            font-size: 3em;
+            display: inline-block;
+            margin-right: 15px;
+            animation: talk 1s infinite;
+        }
+        
+        @keyframes talk {
+            0%, 100% { transform: rotateZ(0deg); }
+            50% { transform: rotateZ(5deg); }
+        }
+        
+        .texto-dialogo {
+            display: inline-block;
+            vertical-align: top;
+            max-width: 500px;
+            font-size: 1.1em;
+            line-height: 1.4;
+        }
+        
+        /* Batalla Épica */
+        .batalla-screen {
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+            color: white;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .campo-batalla {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60vh;
+            padding: 40px;
+            position: relative;
+        }
+        
+        .mago-contenedor, .monstruo-contenedor {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        .mago-sprite, .monstruo-sprite {
+            font-size: 8em;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .mago-sprite {
+            animation: magoIdle 3s infinite;
+        }
+        
+        .monstruo-sprite {
+            animation: monstruoIdle 4s infinite;
+        }
+        
+        @keyframes magoIdle {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.05); }
+        }
+        
+        @keyframes monstruoIdle {
+            0%, 100% { transform: translateX(0) rotateZ(0deg); }
+            25% { transform: translateX(-5px) rotateZ(-2deg); }
+            75% { transform: translateX(5px) rotateZ(2deg); }
+        }
+        
+        .vida-contenedor {
+            width: 200px;
+            text-align: center;
+        }
+        
+        .vida-barra {
+            width: 100%;
+            height: 25px;
+            background: #333;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+            border: 3px solid #fff;
+        }
+        
+        .vida-fill {
+            height: 100%;
+            transition: width 0.8s ease;
+            border-radius: 12px;
+        }
+        
+        .vida-mago {
+            background: linear-gradient(90deg, #4FC3F7, #29B6F6, #03A9F4);
+        }
+        
+        .vida-monstruo {
+            background: linear-gradient(90deg, #FF5722, #FF7043, #FF8A65);
+        }
+        
+        .panel-batalla {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.9);
+            padding: 30px;
+            border-top: 3px solid #FFD700;
+        }
+        
+        .contador-batalla {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+        
+        .aciertos { color: #4CAF50; }
+        .intentos { color: #FF9800; }
+        
+        .ejercicio-contenedor {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .ejercicio-texto {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .respuesta-contenedor {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .input-respuesta {
+            padding: 15px;
+            font-size: 1.5em;
+            border: 3px solid #FFD700;
+            border-radius: 10px;
+            text-align: center;
+            width: 150px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.9);
+        }
+        
+        .btn-lanzar-hechizo {
+            background: linear-gradient(45deg, #9C27B0, #673AB7);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(156,39,176,0.4);
+            transition: all 0.3s;
+        }
+        
+        .btn-lanzar-hechizo:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 25px rgba(156,39,176,0.6);
+        }
+        
+        .btn-lanzar-hechizo:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-volver {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        
+        /* Animaciones de Combate */
+        .hechizo-proyectil {
+            position: absolute;
+            font-size: 3em;
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .ecuacion-resultado {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            z-index: 200;
+            border: 3px solid #FFD700;
+            animation: mostrarResultado 2s ease-out;
+        }
+        
+        @keyframes mostrarResultado {
+            0% { 
+                transform: translate(-50%, -50%) scale(0); 
+                opacity: 0; 
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.2); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 1; 
+            }
+        }
+        
+        .mago-atacando {
+            animation: magoAtaque 1s ease-out !important;
+        }
+        
+        .monstruo-danado {
+            animation: monstruoDano 1s ease-out !important;
+        }
+        
+        .monstruo-atacando {
+            animation: monstruoAtaque 1s ease-out !important;
+        }
+        
+        .mago-danado {
+            animation: magoDano 1s ease-out !important;
+        }
+        
+        @keyframes magoAtaque {
+            0% { transform: translateY(0) scale(1); }
+            30% { transform: translateY(-20px) scale(1.2) rotateZ(10deg); }
+            70% { transform: translateY(-15px) scale(1.1) rotateZ(-5deg); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        
+        @keyframes monstruoDano {
+            0% { transform: translateX(0) scale(1); filter: brightness(1); }
+            25% { transform: translateX(-15px) scale(0.9); filter: brightness(1.5) hue-rotate(0deg); }
+            50% { transform: translateX(10px) scale(1.1); filter: brightness(0.7) hue-rotate(180deg); }
+            75% { transform: translateX(-5px) scale(0.95); filter: brightness(1.2) hue-rotate(90deg); }
+            100% { transform: translateX(0) scale(1); filter: brightness(1); }
+        }
+        
+        @keyframes monstruoAtaque {
+            0% { transform: translateX(0) scale(1); }
+            30% { transform: translateX(-30px) scale(1.3) rotateZ(-15deg); }
+            70% { transform: translateX(-20px) scale(1.2) rotateZ(10deg); }
+            100% { transform: translateX(0) scale(1); }
+        }
+        
+        @keyframes magoDano {
+            0% { transform: translateY(0) scale(1); filter: brightness(1); }
+            25% { transform: translateY(15px) scale(0.9); filter: brightness(0.5) sepia(100%); }
+            50% { transform: translateY(-10px) scale(1.1); filter: brightness(1.5) hue-rotate(320deg); }
+            75% { transform: translateY(5px) scale(0.95); filter: brightness(0.8) saturate(150%); }
+            100% { transform: translateY(0) scale(1); filter: brightness(1); }
+        }
+        
+        .explosion-efecto {
+            position: absolute;
+            font-size: 4em;
+            z-index: 150;
+            pointer-events: none;
+            animation: explosion 1s ease-out forwards;
+        }
+        
+        @keyframes explosion {
+            0% { 
+                transform: scale(0) rotate(0deg); 
+                opacity: 1; 
+            }
+            50% { 
+                transform: scale(1.5) rotate(180deg); 
+                opacity: 0.8; 
+            }
+            100% { 
+                transform: scale(2) rotate(360deg); 
+                opacity: 0; 
+            }
+        }
+        
+        .risa-efecto {
+            position: absolute;
+            top: 20%;
+            left: 70%;
+            font-size: 3em;
+            z-index: 150;
+            animation: risa 2s ease-out forwards;
+        }
+        
+        @keyframes risa {
+            0% { transform: scale(0); opacity: 0; }
+            20% { transform: scale(1.2); opacity: 1; }
+            80% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0; }
+        }
+        
+        .particulas-magicas {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .particula-magica {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #FFD700;
+            border-radius: 50%;
+            animation: floatMagic 4s infinite;
+        }
+        
+        @keyframes floatMagic {
+            0% {
+                transform: translateY(100vh) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(-100px) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .mensaje-final {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            color: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            z-index: 300;
+            border: 4px solid #FFD700;
+            animation: aparecerFinal 1s ease-out;
+        }
+        
+        @keyframes aparecerFinal {
+            0% { 
+                transform: translate(-50%, -50%) scale(0); 
+                opacity: 0; 
+            }
+            100% { 
+                transform: translate(-50%, -50%) scale(1); 
+                opacity: 1; 
+            }
+        }
+        
+        .oculto { display: none !important; }
+        
+        /* OPTIMIZACIÓN MÓVIL MEJORADA */
+        @media (max-width: 768px) {
+            body {
+                font-size: 16px;
+                -webkit-text-size-adjust: 100%;
+            }
+            
+            /* Pantalla inicio móvil */
+            .inicio-card {
+                padding: 30px 20px;
+                margin: 10px;
+                border-radius: 20px;
+            }
+            
+            .titulo-principal {
+                font-size: 2.5em;
+                margin-bottom: 15px;
+            }
+            
+            .personaje-inicio {
+                font-size: 5em;
+                margin: 15px 0;
+            }
+            
+            .input-aventurero {
+                width: 280px;
+                padding: 18px;
+                font-size: 16px;
+                margin: 15px 0;
+            }
+            
+            .btn-aventura {
+                padding: 18px 35px;
+                font-size: 18px;
+                margin: 15px 0;
+                width: 280px;
+                min-height: 60px;
+                touch-action: manipulation;
+            }
+            
+            /* Mapa móvil */
+            .titulo-reino {
+                font-size: 2.2em;
+                margin-bottom: 20px;
+                padding: 0 10px;
+            }
+            
+            .aventurero {
+                font-size: 3em;
+                margin: 15px 0;
+            }
+            
+            .camino {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+                margin: 20px 0;
+                justify-items: center;
+            }
+            
+            .nivel {
+                width: 100px;
+                height: 100px;
+                font-size: 14px;
+                margin: 0;
+                min-height: 44px;
+                min-width: 44px;
+                touch-action: manipulation;
+            }
+            
+            .nivel-emoji {
+                font-size: 1.8em;
+                margin-bottom: 3px;
+            }
+            
+            .nivel-nombre {
+                font-size: 10px;
+                line-height: 1.1;
+            }
+            
+            .dialogo-npc {
+                margin: 15px 10px;
+                padding: 20px;
+                font-size: 14px;
+            }
+            
+            .npc-sprite {
+                font-size: 2.5em;
+                margin-right: 10px;
+            }
+            
+            .texto-dialogo {
+                font-size: 14px;
+                line-height: 1.3;
+                max-width: calc(100% - 60px);
+            }
+            
+            .hud-aventurero {
+                top: 10px;
+                right: 10px;
+                padding: 10px;
+                font-size: 12px;
+                max-width: 140px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 5px;
+                margin: 8px 0;
+            }
+            
+            .stat-item {
+                padding: 3px;
+                font-size: 11px;
+            }
+            
+            /* Batalla móvil */
+            .campo-batalla {
+                height: 40vh;
+                padding: 20px 10px;
+                flex-direction: column;
+                justify-content: space-around;
+            }
+            
+            .mago-sprite, .monstruo-sprite { 
+                font-size: 4em; 
+                margin-bottom: 10px;
+            }
+            
+            .vida-contenedor {
+                width: 150px;
+            }
+            
+            .vida-barra {
+                height: 20px;
+                margin: 8px 0;
+            }
+            
+            .panel-batalla {
+                padding: 15px;
+                max-height: 60vh;
+                overflow-y: auto;
+            }
+            
+            .contador-batalla {
+                font-size: 1em;
+                margin-bottom: 15px;
+            }
+            
+            .ejercicio-contenedor {
+                padding: 20px;
+                margin-bottom: 15px;
+            }
+            
+            .ejercicio-texto { 
+                font-size: 1.4em;
+                margin-bottom: 15px;
+                line-height: 1.2;
+                word-break: break-word;
+            }
+            
+            .respuesta-contenedor { 
+                flex-direction: column; 
+                gap: 15px;
+                align-items: center;
+            }
+            
+            .input-respuesta {
+                width: 200px;
+                padding: 18px;
+                font-size: 18px;
+                border: 3px solid #FFD700;
+                border-radius: 12px;
+                -webkit-appearance: none;
+                -moz-appearance: textfield;
+                min-height: 60px;
+                touch-action: manipulation;
+            }
+            
+            .input-respuesta:focus {
+                outline: none;
+                border-color: #4CAF50;
+                box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+            }
+            
+            .btn-lanzar-hechizo {
+                width: 200px;
+                padding: 18px 25px;
+                font-size: 16px;
+                border-radius: 12px;
+                min-height: 60px;
+                touch-action: manipulation;
+            }
+            
+            .btn-volver {
+                top: 10px;
+                left: 10px;
+                padding: 12px 20px;
+                font-size: 14px;
+                border-radius: 10px;
+                min-height: 50px;
+                touch-action: manipulation;
+            }
+            
+            /* Efectos móvil */
+            .ecuacion-resultado {
+                font-size: 1.2em;
+                padding: 15px;
+                max-width: 90vw;
+                word-break: break-word;
+            }
+            
+            .mensaje-final {
+                padding: 25px 15px;
+                margin: 10px;
+                max-width: 90vw;
+                max-height: 80vh;
+                overflow-y: auto;
+            }
+            
+            .mensaje-final h2 {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+            
+            .mensaje-final button {
+                padding: 15px 25px;
+                font-size: 16px;
+                margin-top: 15px;
+                min-height: 60px;
+                touch-action: manipulation;
+                border-radius: 12px;
+                width: 100%;
+                max-width: 250px;
+            }
+            
+            .explosion-efecto {
+                font-size: 2.5em;
+            }
+            
+            .risa-efecto {
+                font-size: 2em;
+                top: 15%;
+                left: 60%;
+            }
+        }
+        
+        /* Para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .titulo-principal {
+                font-size: 2em;
+            }
+            
+            .personaje-inicio {
+                font-size: 4em;
+            }
+            
+            .input-aventurero {
+                width: 240px;
+                font-size: 14px;
+            }
+            
+            .btn-aventura {
+                width: 240px;
+                font-size: 16px;
+                padding: 15px 25px;
+            }
+            
+            .mago-sprite, .monstruo-sprite {
+                font-size: 3.5em;
+            }
+            
+            .ejercicio-texto {
+                font-size: 1.2em;
+            }
+            
+            .input-respuesta {
+                width: 180px;
+                font-size: 16px;
+                padding: 15px;
+            }
+            
+            .btn-lanzar-hechizo {
+                width: 180px;
+                font-size: 14px;
+                padding: 15px 20px;
+            }
+        }
+        
+        /* Landscape móvil */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .campo-batalla {
+                flex-direction: row;
+                justify-content: space-between;
+                height: 45vh;
+            }
+            
+            .panel-batalla {
+                max-height: 55vh;
+            }
+            
+            .mago-sprite, .monstruo-sprite {
+                font-size: 3em;
+            }
+        }
+        
+        /* Mejoras táctiles */
+        button, input, .nivel {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        button:active, .nivel:active {
+            transform: scale(0.95);
+            transition: transform 0.1s;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        /* Reducir animaciones en móvil para mejor rendimiento */
+        @media (max-width: 768px) {
+            .particulas-magicas {
+                display: none;
+            }
+            
+            @keyframes magoIdle {
+                0%, 100% { transform: translateY(0) scale(1); }
+                50% { transform: translateY(-5px) scale(1.02); }
+            }
+            
+            @keyframes monstruoIdle {
+                0%, 100% { transform: translateX(0) rotateZ(0deg); }
+                25% { transform: translateX(-3px) rotateZ(-1deg); }
+                75% { transform: translateX(3px) rotateZ(1deg); }
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Partículas mágicas -->
+    <div class="particulas-magicas" id="particulasMagicas"></div>
+
+    <!-- Pantalla de Inicio -->
+    <div id="inicio" class="screen active inicio-screen">
+        <div class="inicio-card">
+            <h1 class="titulo-principal">👑 REINO DE LOS NÚMEROS</h1>
+            <div class="personaje-inicio">🧙‍♂️</div>
+            <h2 style="color: #FFD700; margin-bottom: 30px;">La Gran Aventura Matemática</h2>
+            <p style="font-size: 1.2em; margin-bottom: 30px; color: white;">
+                ¡Embárcate en una épica aventura para salvar el Reino de los Números!<br>
+                Usa la magia de las matemáticas para derrotar a los monstruos del caos.
+            </p>
+            <input type="text" id="nombreAventurero" class="input-aventurero" 
+                   placeholder="Nombre del Mago..." maxlength="15" 
+                   oninput="validarNombre()" onkeyup="validarNombre()">
+            <br>
+            <button id="btnComenzarAventura" class="btn-aventura" disabled 
+                    onclick="comenzarAventura()">
+                ⚔️ Comenzar Aventura
+            </button>
+        </div>
+    </div>
+
+    <!-- Mapa del Reino -->
+    <div id="mapa" class="screen mapa-reino">
+        <div class="hud-aventurero">
+            <div><strong id="nombreJugador">Mago</strong> 🧙‍♂️</div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div>💰</div>
+                    <div id="monedas">0</div>
+                </div>
+                <div class="stat-item">
+                    <div>⚡</div>
+                    <div id="energia">100</div>
+                </div>
+                <div class="stat-item">
+                    <div>🏆</div>
+                    <div id="victorias">0</div>
+                </div>
+                <div class="stat-item">
+                    <div>🔮</div>
+                    <div id="nivel">1</div>
+                </div>
+                <div class="stat-item">
+                    <div>⭐</div>
+                    <div id="estrellas">0</div>
+                </div>
+                <div class="stat-item">
+                    <div>🛡️</div>
+                    <div id="poder">100</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mapa-container">
+            <h1 class="titulo-reino">🏰 Reino de los Números</h1>
+            
+            <div class="dialogo-npc">
+                <span class="npc-sprite">🧙‍♂️</span>
+                <div class="texto-dialogo">
+                    <strong>Maestro Pitágoras:</strong> ¡Bienvenido joven mago! Los Monstruos del Caos han 
+                    invadido nuestro reino. Necesitas 15 hechizos matemáticos correctos de 20 intentos 
+                    para derrotar a cada monstruo. ¡La magia de los números es tu arma más poderosa!
+                </div>
+            </div>
+
+            <div class="aventurero">🧙‍♂️</div>
+
+            <div class="camino">
+                <div class="nivel desbloqueado" data-mundo="1" data-nivel="1">
+                    <div class="nivel-emoji">🐺</div>
+                    <div class="nivel-nombre">Lobo del<br>Caos</div>
+                </div>
+                
+                <div class="nivel bloqueado" data-mundo="1" data-nivel="2">
+                    <div class="nivel-emoji">🦉</div>
+                    <div class="nivel-nombre">Búho<br>Corrupto</div>
+                </div>
+                
+                <div class="nivel bloqueado" data-mundo="1" data-nivel="3">
+                    <div class="nivel-emoji">👻</div>
+                    <div class="nivel-nombre">Fantasma<br>Números</div>
+                </div>
+                
+                <div class="nivel bloqueado" data-mundo="1" data-nivel="4">
+                    <div class="nivel-emoji">🐉</div>
+                    <div class="nivel-nombre">Dragón<br>Matemático</div>
+                </div>
+
+                <div class="nivel bloqueado" data-mundo="2" data-nivel="1">
+                    <div class="nivel-emoji">🥶</div>
+                    <div class="nivel-nombre">Yeti<br>Helado</div>
+                </div>
+                
+                <div class="nivel bloqueado" data-mundo="2" data-nivel="2">
+                    <div class="nivel-emoji">🤖</div>
+                    <div class="nivel-nombre">Robot<br>Defectuoso</div>
+                </div>
+                
+                <div class="nivel bloqueado" data-mundo="2" data-nivel="3">
+                    <div class="nivel-emoji">🚀</div>
+                    <div class="nivel-nombre">Comandante<br>Espacial</div>
+                </div>
+                
+                <div class="nivel bloqueado" data-mundo="2" data-nivel="4">
+                    <div class="nivel-emoji">👽</div>
+                    <div class="nivel-nombre">Emperador<br>Alien</div>
+                </div>
+            </div>
+
+            <div class="dialogo-npc">
+                <span class="npc-sprite">🧚‍♀️</span>
+                <div class="texto-dialogo">
+                    <strong>Hada de las Ecuaciones:</strong> Recuerda joven mago: cada ejercicio matemático 
+                    correcto se convierte en un poderoso hechizo. ¡Apunta bien y que la fuerza de los 
+                    números te acompañe!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batalla Épica -->
+    <div id="batalla" class="screen batalla-screen">
+        <button class="btn-volver" onclick="volverMapa()">🏠 Volver al Reino</button>
+        
+        <!-- Campo de Batalla -->
+        <div class="campo-batalla">
+            <!-- Mago -->
+            <div class="mago-contenedor">
+                <div id="magoSprite" class="mago-sprite">🧙‍♂️</div>
+                <div class="vida-contenedor">
+                    <div><strong id="nombreMago">Mago</strong></div>
+                    <div class="vida-barra">
+                        <div class="vida-fill vida-mago" id="vidaMago" style="width: 100%;"></div>
+                    </div>
+                    <div>Poder Mágico: <span id="poderMago">100</span>%</div>
+                </div>
+            </div>
+
+            <!-- Monstruo -->
+            <div class="monstruo-contenedor">
+                <div id="monstruoSprite" class="monstruo-sprite">🐺</div>
+                <div class="vida-contenedor">
+                    <div><strong id="nombreMonstruo">Lobo del Caos</strong></div>
+                    <div class="vida-barra">
+                        <div class="vida-fill vida-monstruo" id="vidaMonstruo" style="width: 100%;"></div>
+                    </div>
+                    <div>Nivel: <span id="nivelMonstruo">1</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Batalla -->
+        <div class="panel-batalla">
+            <div class="contador-batalla">
+                <span class="aciertos">Hechizos Acertados: <strong id="aciertos">0</strong>/15</span>
+                &nbsp;&nbsp;&nbsp;
+                <span class="intentos">Intentos: <strong id="intentos">0</strong>/20</span>
+            </div>
+
+            <div class="ejercicio-contenedor">
+                <div class="ejercicio-texto" id="ejercicioTexto">
+                    27 + 15 = ?
+                </div>
+                
+                <div class="respuesta-contenedor">
+                    <input type="number" id="respuestaInput" class="input-respuesta" 
+                           placeholder="?" onkeypress="if(event.key==='Enter') lanzarHechizo()">
+                    <button id="btnLanzarHechizo" class="btn-lanzar-hechizo" onclick="lanzarHechizo()">
+                        ⚡ LANZAR HECHIZO
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales del juego
+        let jugador = {
+            nombre: '',
+            monedas: 0,
+            energia: 100,
+            victorias: 0,
+            nivel: 1,
+            estrellas: 0,
+            poder: 100
+        };
+
+        let nivelesDesbloqueados = {
+            1: [1],
+            2: []
+        };
+
+        let nivelesCompletados = {
+            1: [],
+            2: []
+        };
+
+        let batalla = {
+            aciertos: 0,
+            intentos: 0,
+            ejercicioActual: 0,
+            vidaMago: 100,
+            vidaMonstruo: 100,
+            monstruoActual: null,
+            ejercicios: [],
+            enBatalla: false
+        };
+
+        // Variable para verificar si ya se inicializó
+        let juegoInicializado = false;
+
+        // Datos de monstruos y ejercicios
+        const monstruos = {
+            1: {
+                1: { nombre: "Lobo del Caos", sprite: "🐺", nivel: 1 },
+                2: { nombre: "Búho Corrupto", sprite: "🦉", nivel: 2 },
+                3: { nombre: "Fantasma de Números", sprite: "👻", nivel: 3 },
+                4: { nombre: "Dragón Matemático", sprite: "🐉", nivel: 4 }
+            },
+            2: {
+                1: { nombre: "Yeti Helado", sprite: "🥶", nivel: 5 },
+                2: { nombre: "Robot Defectuoso", sprite: "🤖", nivel: 6 },
+                3: { nombre: "Comandante Espacial", sprite: "🚀", nivel: 7 },
+                4: { nombre: "Emperador Alien", sprite: "👽", nivel: 8 }
+            }
+        };
+
+        // MANTENIENDO EXACTAMENTE LOS MISMOS EJERCICIOS CON NÚMEROS ENTEROS DEL CÓDIGO ORIGINAL
+        function generarEjercicios(mundo, nivel) {
+            const ejercicios = [];
+            const nivelGlobal = (mundo - 1) * 4 + nivel;
+            
+            // NIVEL 1: Sumas y restas básicas con enteros
+            if (nivelGlobal === 1) {
+                const ejerciciosNivel1 = [
+                    { texto: "(-5) + 8 = ?", respuesta: 3 },
+                    { texto: "12 + (-7) = ?", respuesta: 5 },
+                    { texto: "(-15) + (-6) = ?", respuesta: -21 },
+                    { texto: "9 - (-4) = ?", respuesta: 13 },
+                    { texto: "(-8) - 5 = ?", respuesta: -13 },
+                    { texto: "(-3) - (-7) = ?", respuesta: 4 },
+                    { texto: "14 + (-9) = ?", respuesta: 5 },
+                    { texto: "(-11) + 6 = ?", respuesta: -5 },
+                    { texto: "(-12) + (-8) = ?", respuesta: -20 },
+                    { texto: "7 - (-5) = ?", respuesta: 12 },
+                    { texto: "(-6) - 4 = ?", respuesta: -10 },
+                    { texto: "(-2) - (-9) = ?", respuesta: 7 },
+                    { texto: "18 + (-12) = ?", respuesta: 6 },
+                    { texto: "(-17) + 11 = ?", respuesta: -6 },
+                    { texto: "(-4) + (-13) = ?", respuesta: -17 },
+                    { texto: "15 - (-8) = ?", respuesta: 23 },
+                    { texto: "(-14) - 3 = ?", respuesta: -17 },
+                    { texto: "(-1) - (-10) = ?", respuesta: 9 },
+                    { texto: "(-19) + 25 = ?", respuesta: 6 },
+                    { texto: "8 - (-11) = ?", respuesta: 19 }
+                ];
+                return ejerciciosNivel1.sort(() => Math.random() - 0.5);
+            }
+            
+            // NIVEL 2: Sumas y restas intermedias con enteros
+            else if (nivelGlobal === 2) {
+                const ejerciciosNivel2 = [
+                    { texto: "(-25) + 18 = ?", respuesta: -7 },
+                    { texto: "32 + (-19) = ?", respuesta: 13 },
+                    { texto: "(-14) + (-16) = ?", respuesta: -30 },
+                    { texto: "15 - (-12) = ?", respuesta: 27 },
+                    { texto: "(-20) - 7 = ?", respuesta: -27 },
+                    { texto: "(-6) - (-15) = ?", respuesta: 9 },
+                    { texto: "(-28) + 21 = ?", respuesta: -7 },
+                    { texto: "35 + (-23) = ?", respuesta: 12 },
+                    { texto: "(-17) + (-19) = ?", respuesta: -36 },
+                    { texto: "24 - (-16) = ?", respuesta: 40 },
+                    { texto: "(-31) - 9 = ?", respuesta: -40 },
+                    { texto: "(-8) - (-22) = ?", respuesta: 14 },
+                    { texto: "(-33) + 27 = ?", respuesta: -6 },
+                    { texto: "41 + (-29) = ?", respuesta: 12 },
+                    { texto: "(-22) + (-14) = ?", respuesta: -36 },
+                    { texto: "18 - (-25) = ?", respuesta: 43 },
+                    { texto: "(-26) - 8 = ?", respuesta: -34 },
+                    { texto: "(-5) - (-21) = ?", respuesta: 16 },
+                    { texto: "(-37) + 42 = ?", respuesta: 5 },
+                    { texto: "29 - (-18) = ?", respuesta: 47 }
+                ];
+                return ejerciciosNivel2.sort(() => Math.random() - 0.5);
+            }
+            
+            // NIVEL 3: Sumas, restas avanzadas y ecuaciones simples con enteros
+            else if (nivelGlobal === 3) {
+                const ejerciciosNivel3 = [
+                    { texto: "(-35) + 28 = ?", respuesta: -7 },
+                    { texto: "45 + (-32) = ?", respuesta: 13 },
+                    { texto: "(-18) + (-24) = ?", respuesta: -42 },
+                    { texto: "25 - (-18) = ?", respuesta: 43 },
+                    { texto: "(-30) - 15 = ?", respuesta: -45 },
+                    { texto: "(-7) - (-29) = ?", respuesta: 22 },
+                    { texto: "x + (-5) = 12", respuesta: 17 },
+                    { texto: "(-8) + x = -15", respuesta: -7 },
+                    { texto: "x - (-6) = 14", respuesta: 8 },
+                    { texto: "(-12) - x = -20", respuesta: 8 },
+                    { texto: "x + 9 = -4", respuesta: -13 },
+                    { texto: "(-6) + x = 11", respuesta: 17 },
+                    { texto: "x - 7 = -19", respuesta: -12 },
+                    { texto: "15 - x = 23", respuesta: -8 },
+                    { texto: "x + (-11) = -18", respuesta: -7 },
+                    { texto: "(-9) + x = 6", respuesta: 15 },
+                    { texto: "x - (-4) = -10", respuesta: -14 },
+                    { texto: "(-13) - x = -5", respuesta: -8 },
+                    { texto: "x + 16 = -3", respuesta: -19 },
+                    { texto: "(-14) + x = -25", respuesta: -11 }
+                ];
+                return ejerciciosNivel3.sort(() => Math.random() - 0.5);
+            }
+            
+            // NIVEL 4: Todas las operaciones básicas con enteros
+            else if (nivelGlobal === 4) {
+                const ejerciciosNivel4 = [
+                    { texto: "(-6) × 4 = ?", respuesta: -24 },
+                    { texto: "8 × (-3) = ?", respuesta: -24 },
+                    { texto: "(-5) × (-7) = ?", respuesta: 35 },
+                    { texto: "(-20) ÷ 4 = ?", respuesta: -5 },
+                    { texto: "18 ÷ (-3) = ?", respuesta: -6 },
+                    { texto: "(-24) ÷ (-6) = ?", respuesta: 4 },
+                    { texto: "(-9) × 3 = ?", respuesta: -27 },
+                    { texto: "7 × (-4) = ?", respuesta: -28 },
+                    { texto: "(-8) × (-6) = ?", respuesta: 48 },
+                    { texto: "(-35) ÷ 5 = ?", respuesta: -7 },
+                    { texto: "21 ÷ (-7) = ?", respuesta: -3 },
+                    { texto: "(-32) ÷ (-8) = ?", respuesta: 4 },
+                    { texto: "3 × x = -21", respuesta: -7 },
+                    { texto: "x ÷ (-4) = 6", respuesta: -24 },
+                    { texto: "(-5) × x = 25", respuesta: -5 },
+                    { texto: "x ÷ 3 = -8", respuesta: -24 },
+                    { texto: "(-7) × x = -42", respuesta: 6 },
+                    { texto: "x ÷ (-5) = -9", respuesta: 45 },
+                    { texto: "4 × x = -32", respuesta: -8 },
+                    { texto: "x ÷ (-6) = 7", respuesta: -42 }
+                ];
+                return ejerciciosNivel4.sort(() => Math.random() - 0.5);
+            }
+            
+            // NIVEL 5: Operaciones intermedias con enteros
+            else if (nivelGlobal === 5) {
+                const ejerciciosNivel5 = [
+                    { texto: "(-9) × (-6) = ?", respuesta: 54 },
+                    { texto: "12 × (-5) = ?", respuesta: -60 },
+                    { texto: "(-42) ÷ 7 = ?", respuesta: -6 },
+                    { texto: "35 ÷ (-5) = ?", respuesta: -7 },
+                    { texto: "(-11) × 4 = ?", respuesta: -44 },
+                    { texto: "(-63) ÷ (-9) = ?", respuesta: 7 },
+                    { texto: "15 × (-3) = ?", respuesta: -45 },
+                    { texto: "(-48) ÷ 6 = ?", respuesta: -8 },
+                    { texto: "(-8) × (-9) = ?", respuesta: 72 },
+                    { texto: "56 ÷ (-8) = ?", respuesta: -7 },
+                    { texto: "(-8) × x = 32", respuesta: -4 },
+                    { texto: "x ÷ (-3) = -9", respuesta: 27 },
+                    { texto: "(-6) × x = -54", respuesta: 9 },
+                    { texto: "x ÷ 7 = -6", respuesta: -42 },
+                    { texto: "9 × x = -81", respuesta: -9 },
+                    { texto: "x ÷ (-4) = 12", respuesta: -48 },
+                    { texto: "(-12) × x = 96", respuesta: -8 },
+                    { texto: "x ÷ (-9) = -5", respuesta: 45 },
+                    { texto: "(-7) × x = 63", respuesta: -9 },
+                    { texto: "x ÷ 8 = -9", respuesta: -72 }
+                ];
+                return ejerciciosNivel5.sort(() => Math.random() - 0.5);
+            }
+            
+            // NIVEL 6: Operaciones más complejas con enteros
+            else if (nivelGlobal === 6) {
+                const ejerciciosNivel6 = [
+                    { texto: "(-15) × 4 = ?", respuesta: -60 },
+                    { texto: "(-72) ÷ (-8) = ?", respuesta: 9 },
+                    { texto: "7 × (-9) = ?", respuesta: -63 },
+                    { texto: "(-56) ÷ 7 = ?", respuesta: -8 },
+                    { texto: "(-13) × (-5) = ?", respuesta: 65 },
+                    { texto: "84 ÷ (-12) = ?", respuesta: -7 },
+                    { texto: "16 × (-4) = ?", respuesta: -64 },
+                    { texto: "(-91) ÷ (-13) = ?", respuesta: 7 },
+                    { texto: "(-14) × 6 = ?", respuesta: -84 },
+                    { texto: "75 ÷ (-15) = ?", respuesta: -5 },
+                    { texto: "(-5) × x = 45", respuesta: -9 },
+                    { texto: "x ÷ (-6) = -7", respuesta: 42 },
+                    { texto: "(-11) × x = -77", respuesta: 7 },
+                    { texto: "x ÷ 9 = -8", respuesta: -72 },
+                    { texto: "8 × x = -96", respuesta: -12 },
+                    { texto: "x ÷ (-7) = 11", respuesta: -77 },
+                    { texto: "(-9) × x = 108", respuesta: -12 },
+                    { texto: "x ÷ (-10) = -6", respuesta: 60 },
+                    { texto: "(-6) × x = 78", respuesta: -13 },
+                    { texto: "x ÷ 12 = -5", respuesta: -60 }
+                ];
+                return ejerciciosNivel6.sort(() => Math.random() - 0.5);
+            }
+            
+            // NIVEL 7: Todas las operaciones combinadas
+            else if (nivelGlobal === 7) {
+                const ejerciciosNivel7 = [
+                    { texto: "(-12) + 8 × (-3) = ?", respuesta: -36 },
+                    { texto: "6 × (-4) - (-15) = ?", respuesta: -9 },
+                    { texto: "(-18) ÷ 3 + (-7) = ?", respuesta: -13 },
+                    { texto: "5 × (-2) + 8 = ?", respuesta: -2 },
+                    { texto: "(-24) ÷ (-6) - 9 = ?", respuesta: -5 },
+                    { texto: "(-8) + 12 ÷ (-4) = ?", respuesta: -11 },
+                    { texto: "7 × (-3) + (-6) = ?", respuesta: -27 },
+                    { texto: "(-20) ÷ 5 - (-8) = ?", respuesta: 4 },
+                    { texto: "(-9) × 2 + 14 = ?", respuesta: -4 },
+                    { texto: "15 ÷ (-3) + (-10) = ?", respuesta: -15 },
+                    { texto: "(-4) × x + 12 = -8", respuesta: 5 },
+                    { texto: "x ÷ (-3) + 7 = 2", respuesta: 15 },
+                    { texto: "(-6) + 2 × x = -18", respuesta: -6 },
+                    { texto: "x × (-5) - 10 = 15", respuesta: -5 },
+                    { texto: "(-8) ÷ x + 6 = 2", respuesta: -2 },
+                    { texto: "3 × x - (-12) = 0", respuesta: -4 },
+                    { texto: "x ÷ 4 + (-9) = -5", respuesta: 16 },
+                    { texto: "(-7) × x + 21 = 0", respuesta: 3 },
+                    { texto: "x × 6 - 18 = -42", respuesta: -4 },
+                    { texto: "(-15) ÷ x - 4 = -1", respuesta: -5 }
+                ];
+                return ejerciciosNivel7.sort(() => Math.random() - 0.5);
+            }
+            
+            // NIVEL 8: Operaciones muy complejas combinadas
+            else if (nivelGlobal === 8) {
+                const ejerciciosNivel8 = [
+                    { texto: "(-3) × 8 - 12 ÷ (-4) = ?", respuesta: -21 },
+                    { texto: "15 ÷ (-3) + (-6) × 2 = ?", respuesta: -17 },
+                    { texto: "(-20) + 4 × (-5) = ?", respuesta: -40 },
+                    { texto: "8 × (-3) ÷ 4 = ?", respuesta: -6 },
+                    { texto: "(-36) ÷ (-6) + 7 × (-2) = ?", respuesta: -8 },
+                    { texto: "9 × (-4) - (-28) ÷ 7 = ?", respuesta: -32 },
+                    { texto: "(-42) ÷ 6 + 5 × (-3) = ?", respuesta: -22 },
+                    { texto: "(-7) × (-8) - 48 ÷ (-6) = ?", respuesta: 64 },
+                    { texto: "18 ÷ (-9) + (-5) × 4 = ?", respuesta: -22 },
+                    { texto: "(-63) ÷ (-7) - 6 × 3 = ?", respuesta: -9 },
+                    { texto: "(-4) × x + 8 ÷ (-2) = -20", respuesta: 4 },
+                    { texto: "x ÷ (-5) + 3 × (-2) = -10", respuesta: 20 },
+                    { texto: "(-6) × 2 + x ÷ 4 = -9", respuesta: 12 },
+                    { texto: "x × (-3) - 15 ÷ 5 = -18", respuesta: 5 },
+                    { texto: "(-8) + x × 2 ÷ (-4) = -14", respuesta: 12 },
+                    { texto: "x ÷ (-6) × 3 + 9 = 0", respuesta: 18 },
+                    { texto: "(-5) × x + 20 ÷ (-4) = -30", respuesta: 5 },
+                    { texto: "x × 4 ÷ (-8) - 6 = -12", respuesta: 12 },
+                    { texto: "(-12) ÷ x + 7 × (-1) = -10", respuesta: 4 },
+                    { texto: "x × (-2) + 18 ÷ (-3) = -16", respuesta: 5 }
+                ];
+                return ejerciciosNivel8.sort(() => Math.random() - 0.5);
+            }
+            
+            // Fallback: retornar ejercicios básicos si hay error
+            return [{ texto: "1 + 1 = ?", respuesta: 2 }];
+        }
+
+        // INICIALIZACIÓN MÚLTIPLE PARA COMPATIBILIDAD MÓVIL
+        function inicializarJuego() {
+            if (juegoInicializado) return;
+            
+            console.log('Inicializando juego...');
+            
+            try {
+                crearParticulasMagicas();
+                configurarEventos();
+                juegoInicializado = true;
+                console.log('Juego inicializado correctamente');
+            } catch (error) {
+                console.error('Error al inicializar:', error);
+            }
+        }
+
+        // Múltiples métodos de inicialización para máxima compatibilidad
+        document.addEventListener('DOMContentLoaded', inicializarJuego);
+        window.addEventListener('load', inicializarJuego);
+        
+        // Inicialización inmediata como fallback
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', inicializarJuego);
+        } else {
+            inicializarJuego();
+        }
+
+        // Función para validar y habilitar botón
+        function validarNombre() {
+            const input = document.getElementById('nombreAventurero');
+            const boton = document.getElementById('btnComenzarAventura');
+            if (input && boton) {
+                boton.disabled = !input.value.trim();
+            }
+        }
+
+        function crearParticulasMagicas() {
+            try {
+                const contenedor = document.getElementById('particulasMagicas');
+                if (contenedor && window.innerWidth > 768) { // Solo en desktop
+                    for (let i = 0; i < 15; i++) {
+                        const particula = document.createElement('div');
+                        particula.className = 'particula-magica';
+                        particula.style.left = Math.random() * 100 + '%';
+                        particula.style.animationDelay = Math.random() * 4 + 's';
+                        particula.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                        contenedor.appendChild(particula);
+                    }
+                }
+            } catch (error) {
+                console.error('Error creando partículas:', error);
+            }
+        }
+
+        function configurarEventos() {
+            try {
+                const inputNombre = document.getElementById('nombreAventurero');
+                const btnAventura = document.getElementById('btnComenzarAventura');
+                
+                if (inputNombre && btnAventura) {
+                    // Event listener con manejo de errores
+                    inputNombre.addEventListener('input', validarNombre);
+                    inputNombre.addEventListener('keyup', validarNombre);
+                    
+                    btnAventura.addEventListener('click', function() {
+                        console.log('Botón clickeado');
+                        comenzarAventura();
+                    });
+                }
+
+                // Configurar niveles
+                document.querySelectorAll('.nivel').forEach(nivel => {
+                    nivel.addEventListener('click', function() {
+                        if (this.classList.contains('desbloqueado')) {
+                            const mundo = parseInt(this.dataset.mundo);
+                            const nivelNum = parseInt(this.dataset.nivel);
+                            iniciarBatalla(mundo, nivelNum);
+                        }
+                    });
+                });
+
+                // Prevenir zoom en móviles
+                document.addEventListener('touchstart', function() {}, true);
+                
+                console.log('Eventos configurados correctamente');
+            } catch (error) {
+                console.error('Error configurando eventos:', error);
+            }
+        }
+
+        function comenzarAventura() {
+            try {
+                console.log('Función comenzarAventura iniciada');
+                
+                const inputNombre = document.getElementById('nombreAventurero');
+                const nombreJugador = document.getElementById('nombreJugador');
+                const nombreMago = document.getElementById('nombreMago');
+                
+                if (!inputNombre) {
+                    console.error('No se encontró input de nombre');
+                    return;
+                }
+                
+                const nombre = inputNombre.value.trim();
+                console.log('Nombre ingresado:', nombre);
+                
+                if (!nombre) {
+                    console.error('Nombre vacío');
+                    return;
+                }
+                
+                jugador.nombre = nombre;
+                console.log('Nombre asignado al jugador:', jugador.nombre);
+                
+                if (nombreJugador) {
+                    nombreJugador.textContent = jugador.nombre;
+                    console.log('Nombre actualizado en HUD');
+                }
+                
+                if (nombreMago) {
+                    nombreMago.textContent = jugador.nombre;
+                    console.log('Nombre actualizado en batalla');
+                }
+                
+                console.log('Actualizando HUD...');
+                actualizarHUD();
+                
+                console.log('Mostrando pantalla mapa...');
+                mostrarPantalla('mapa');
+                
+                console.log('Aventura comenzada exitosamente');
+                
+            } catch (error) {
+                console.error('Error en comenzarAventura:', error);
+                alert('Error al comenzar la aventura. Por favor recarga la página.');
+            }
+        }
+
+        function mostrarPantalla(pantallaId) {
+            try {
+                console.log('Mostrando pantalla:', pantallaId);
+                
+                const todasPantallas = document.querySelectorAll('.screen');
+                const pantallaDestino = document.getElementById(pantallaId);
+                
+                if (!pantallaDestino) {
+                    console.error('No se encontró pantalla:', pantallaId);
+                    return;
+                }
+                
+                // Ocultar todas las pantallas
+                todasPantallas.forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                
+                // Mostrar pantalla destino
+                pantallaDestino.classList.add('active');
+                
+                console.log('Pantalla mostrada correctamente:', pantallaId);
+                
+            } catch (error) {
+                console.error('Error en mostrarPantalla:', error);
+            }
+        }
+
+        function actualizarHUD() {
+            try {
+                console.log('Actualizando HUD...');
+                
+                const elementos = {
+                    'monedas': jugador.monedas,
+                    'energia': jugador.energia,
+                    'victorias': jugador.victorias,
+                    'nivel': jugador.nivel,
+                    'estrellas': jugador.estrellas,
+                    'poder': jugador.poder
+                };
+                
+                for (const [id, valor] of Object.entries(elementos)) {
+                    const elemento = document.getElementById(id);
+                    if (elemento) {
+                        elemento.textContent = valor;
+                    } else {
+                        console.warn('No se encontró elemento:', id);
+                    }
+                }
+                
+                console.log('HUD actualizado correctamente');
+                
+            } catch (error) {
+                console.error('Error actualizando HUD:', error);
+            }
+        }
+
+        function iniciarBatalla(mundo, nivel) {
+            batalla.monstruoActual = monstruos[mundo][nivel];
+            batalla.ejercicios = generarEjercicios(mundo, nivel);
+            batalla.aciertos = 0;
+            batalla.intentos = 0;
+            batalla.ejercicioActual = 0;
+            batalla.vidaMago = 100;
+            batalla.vidaMonstruo = 100;
+            batalla.enBatalla = true;
+
+            // Actualizar UI
+            document.getElementById('monstruoSprite').textContent = batalla.monstruoActual.sprite;
+            document.getElementById('nombreMonstruo').textContent = batalla.monstruoActual.nombre;
+            document.getElementById('nivelMonstruo').textContent = batalla.monstruoActual.nivel;
+            document.getElementById('vidaMago').style.width = '100%';
+            document.getElementById('vidaMonstruo').style.width = '100%';
+            document.getElementById('poderMago').textContent = '100';
+            
+            cargarSiguienteEjercicio();
+            mostrarPantalla('batalla');
+        }
+
+        function cargarSiguienteEjercicio() {
+            if (batalla.ejercicioActual < batalla.ejercicios.length) {
+                const ejercicio = batalla.ejercicios[batalla.ejercicioActual];
+                document.getElementById('ejercicioTexto').textContent = ejercicio.texto;
+                document.getElementById('respuestaInput').value = '';
+                document.getElementById('respuestaInput').focus();
+                actualizarContadores();
+            }
+        }
+
+        function actualizarContadores() {
+            document.getElementById('aciertos').textContent = batalla.aciertos;
+            document.getElementById('intentos').textContent = batalla.intentos;
+        }
+
+        function lanzarHechizo() {
+            if (!batalla.enBatalla) return;
+            
+            const respuestaInput = document.getElementById('respuestaInput');
+            const respuestaUsuario = parseInt(respuestaInput.value);
+            
+            if (isNaN(respuestaUsuario) || respuestaInput.value.trim() === '') {
+                respuestaInput.style.borderColor = '#F44336';
+                respuestaInput.focus();
+                setTimeout(() => {
+                    respuestaInput.style.borderColor = '#FFD700';
+                }, 500);
+                return;
+            }
+            
+            const ejercicioActual = batalla.ejercicios[batalla.ejercicioActual];
+            const esCorrecto = respuestaUsuario === ejercicioActual.respuesta;
+            
+            batalla.intentos++;
+            document.getElementById('btnLanzarHechizo').disabled = true;
+            
+            // Mostrar animación de lanzamiento
+            animarLanzamientoHechizo(esCorrecto, ejercicioActual, respuestaUsuario);
+        }
+
+        function animarLanzamientoHechizo(esCorrecto, ejercicio, respuestaUsuario) {
+            // Animar mago lanzando hechizo
+            const mago = document.getElementById('magoSprite');
+            mago.classList.add('mago-atacando');
+            
+            // Crear proyectil de hechizo
+            const hechizo = document.createElement('div');
+            hechizo.className = 'hechizo-proyectil';
+            hechizo.textContent = esCorrecto ? '⚡✨' : '💨';
+            hechizo.style.left = '20%';
+            hechizo.style.top = '40%';
+            document.querySelector('.campo-batalla').appendChild(hechizo);
+            
+            // Animar proyectil hacia el monstruo
+            setTimeout(() => {
+                hechizo.style.transition = 'all 1s ease-out';
+                hechizo.style.left = '70%';
+                hechizo.style.top = '35%';
+                
+                if (esCorrecto) {
+                    hechizo.style.transform = 'scale(1.5) rotate(360deg)';
+                } else {
+                    hechizo.style.transform = 'scale(0.5)';
+                }
+            }, 100);
+            
+            // Mostrar resultado después de 1 segundo
+            setTimeout(() => {
+                mostrarResultadoEcuacion(esCorrecto, ejercicio, respuestaUsuario);
+                if (document.querySelector('.campo-batalla').contains(hechizo)) {
+                    document.querySelector('.campo-batalla').removeChild(hechizo);
+                }
+                
+                if (esCorrecto) {
+                    monstruoRecibeDano();
+                } else {
+                    monstruoContraataca();
+                }
+                
+                // Limpiar animación del mago
+                setTimeout(() => {
+                    mago.classList.remove('mago-atacando');
+                }, 500);
+                
+            }, 1200);
+        }
+
+        function mostrarResultadoEcuacion(esCorrecto, ejercicio, respuestaUsuario) {
+            const resultado = document.createElement('div');
+            resultado.className = 'ecuacion-resultado';
+            
+            if (esCorrecto) {
+                resultado.innerHTML = `
+                    <div style="color: #4CAF50; font-size: 1.2em;">¡CORRECTO! ✅</div>
+                    <div>${ejercicio.texto.replace('?', ejercicio.respuesta)}</div>
+                `;
+                resultado.style.borderColor = '#4CAF50';
+            } else {
+                resultado.innerHTML = `
+                    <div style="color: #F44336; font-size: 1.2em;">INCORRECTO ❌</div>
+                    <div>Tu respuesta: ${respuestaUsuario}</div>
+                    <div>Correcto: ${ejercicio.texto.replace('?', ejercicio.respuesta)}</div>
+                `;
+                resultado.style.borderColor = '#F44336';
+            }
+            
+            document.body.appendChild(resultado);
+            
+            setTimeout(() => {
+                if (document.body.contains(resultado)) {
+                    document.body.removeChild(resultado);
+                }
+            }, 2500);
+        }
+
+        function monstruoRecibeDano() {
+            batalla.aciertos++;
+            batalla.vidaMonstruo = Math.max(0, batalla.vidaMonstruo - (100/15));
+            
+            // Animar monstruo recibiendo daño
+            const monstruo = document.getElementById('monstruoSprite');
+            monstruo.classList.add('monstruo-danado');
+            
+            // Crear explosión
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion-efecto';
+            explosion.textContent = '💥💢';
+            explosion.style.left = '65%';
+            explosion.style.top = '30%';
+            document.querySelector('.campo-batalla').appendChild(explosion);
+            
+            // Actualizar barra de vida
+            document.getElementById('vidaMonstruo').style.width = batalla.vidaMonstruo + '%';
+            
+            setTimeout(() => {
+                monstruo.classList.remove('monstruo-danado');
+                if (document.querySelector('.campo-batalla').contains(explosion)) {
+                    document.querySelector('.campo-batalla').removeChild(explosion);
+                }
+                verificarEstadoBatalla();
+            }, 1000);
+        }
+
+        function monstruoContraataca() {
+            batalla.vidaMago = Math.max(0, batalla.vidaMago - 16.67); // 100/6 = ~16.67
+            
+            // Animar monstruo atacando
+            const monstruo = document.getElementById('monstruoSprite');
+            monstruo.classList.add('monstruo-atacando');
+            
+            // Crear efecto de risa
+            const risa = document.createElement('div');
+            risa.className = 'risa-efecto';
+            risa.textContent = '😂🤣😈';
+            document.querySelector('.campo-batalla').appendChild(risa);
+            
+            setTimeout(() => {
+                // Animar mago recibiendo daño
+                const mago = document.getElementById('magoSprite');
+                mago.classList.add('mago-danado');
+                
+                // Actualizar barra de vida
+                document.getElementById('vidaMago').style.width = batalla.vidaMago + '%';
+                document.getElementById('poderMago').textContent = Math.round(batalla.vidaMago);
+                
+                setTimeout(() => {
+                    monstruo.classList.remove('monstruo-atacando');
+                    mago.classList.remove('mago-danado');
+                    if (document.querySelector('.campo-batalla').contains(risa)) {
+                        document.querySelector('.campo-batalla').removeChild(risa);
+                    }
+                    verificarEstadoBatalla();
+                }, 1000);
+            }, 500);
+        }
+
+        function verificarEstadoBatalla() {
+            if (batalla.aciertos >= 15) {
+                // Victoria
+                setTimeout(() => {
+                    mostrarVictoria();
+                }, 500);
+            } else if (batalla.intentos >= 20 || batalla.vidaMago <= 0) {
+                // Derrota
+                setTimeout(() => {
+                    mostrarDerrota();
+                }, 500);
+            } else {
+                // Continuar batalla
+                batalla.ejercicioActual++;
+                setTimeout(() => {
+                    cargarSiguienteEjercicio();
+                    document.getElementById('btnLanzarHechizo').disabled = false;
+                }, 1000);
+            }
+        }
+
+        function mostrarVictoria() {
+            batalla.enBatalla = false;
+            
+            // Recompensas
+            jugador.monedas += 200;
+            jugador.victorias++;
+            jugador.estrellas += 10;
+            jugador.energia = Math.min(100, jugador.energia + 25);
+            
+            // Desbloquear siguiente nivel
+            const mundoActual = Math.ceil(batalla.monstruoActual.nivel / 4);
+            const nivelActual = ((batalla.monstruoActual.nivel - 1) % 4) + 1;
+            
+            if (!nivelesCompletados[mundoActual].includes(nivelActual)) {
+                nivelesCompletados[mundoActual].push(nivelActual);
+            }
+            
+            if (nivelActual < 4) {
+                if (!nivelesDesbloqueados[mundoActual].includes(nivelActual + 1)) {
+                    nivelesDesbloqueados[mundoActual].push(nivelActual + 1);
+                }
+            } else if (mundoActual === 1) {
+                if (!nivelesDesbloqueados[2].includes(1)) {
+                    nivelesDesbloqueados[2].push(1);
+                }
+            }
+            
+            const mensaje = document.createElement('div');
+            mensaje.className = 'mensaje-final';
+            mensaje.innerHTML = `
+                <div style="font-size: 3em; margin-bottom: 20px;">🎉👑🎉</div>
+                <h2 style="color: #FFD700; margin-bottom: 15px;">¡VICTORIA ÉPICA!</h2>
+                <p style="font-size: 1.2em; margin-bottom: 15px;">
+                    ¡Has derrotado a ${batalla.monstruoActual.nombre}!
+                </p>
+                <p style="margin-bottom: 20px;">
+                    Acertaste ${batalla.aciertos} de ${batalla.intentos} hechizos matemáticos
+                </p>
+                <p style="color: #4CAF50; font-weight: bold;">
+                    Recompensas: +200 monedas, +10 estrellas
+                </p>
+                <button onclick="cerrarMensajeFinal()" style="
+                    background: linear-gradient(45deg, #4CAF50, #45a049);
+                    color: white; border: none; padding: 15px 30px;
+                    font-size: 18px; border-radius: 10px; cursor: pointer;
+                    margin-top: 20px; font-weight: bold;
+                ">¡Continuar Aventura!</button>
+            `;
+            
+            document.body.appendChild(mensaje);
+            actualizarHUD();
+            actualizarMapaNiveles();
+        }
+
+        function mostrarDerrota() {
+            batalla.enBatalla = false;
+            
+            const mensaje = document.createElement('div');
+            mensaje.className = 'mensaje-final';
+            mensaje.innerHTML = `
+                <div style="font-size: 3em; margin-bottom: 20px;">💀⚡💀</div>
+                <h2 style="color: #F44336; margin-bottom: 15px;">DERROTA...</h2>
+                <p style="font-size: 1.2em; margin-bottom: 15px;">
+                    ${batalla.monstruoActual.nombre} ha sido más fuerte esta vez.
+                </p>
+                <p style="margin-bottom: 20px;">
+                    Acertaste solo ${batalla.aciertos} de ${batalla.intentos} hechizos matemáticos
+                </p>
+                <p style="color: #FF9800; font-weight: bold; margin-bottom: 20px;">
+                    ¡No te rindas! Puedes intentarlo de nuevo.
+                </p>
+                <button onclick="cerrarMensajeFinal()" style="
+                    background: linear-gradient(45deg, #FF9800, #F57C00);
+                    color: white; border: none; padding: 15px 30px;
+                    font-size: 18px; border-radius: 10px; cursor: pointer;
+                    font-weight: bold;
+                ">Regresar al Reino</button>
+            `;
+            
+            document.body.appendChild(mensaje);
+        }
+
+        function cerrarMensajeFinal() {
+            const mensaje = document.querySelector('.mensaje-final');
+            if (mensaje) {
+                document.body.removeChild(mensaje);
+            }
+            volverMapa();
+        }
+
+        function actualizarMapaNiveles() {
+            document.querySelectorAll('.nivel').forEach(nivel => {
+                const mundo = parseInt(nivel.dataset.mundo);
+                const nivelNum = parseInt(nivel.dataset.nivel);
+                
+                if (nivelesDesbloqueados[mundo] && nivelesDesbloqueados[mundo].includes(nivelNum)) {
+                    nivel.classList.remove('bloqueado');
+                    nivel.classList.add('desbloqueado');
+                }
+                
+                if (nivelesCompletados[mundo] && nivelesCompletados[mundo].includes(nivelNum)) {
+                    nivel.classList.remove('desbloqueado');
+                    nivel.classList.add('completado');
+                    
+                    if (!nivel.querySelector('.estrella-progreso')) {
+                        const estrella = document.createElement('div');
+                        estrella.className = 'estrella-progreso';
+                        estrella.textContent = '⭐';
+                        nivel.appendChild(estrella);
+                    }
+                }
+            });
+        }
+
+        function volverMapa() {
+            batalla.enBatalla = false;
+            mostrarPantalla('mapa');
+        }
+
+        // Prevenir zoom en dispositivos móviles
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
+        });
+
+        // Manejar cambios de orientación
+        window.addEventListener('orientationchange', function() {
+            setTimeout(function() {
+                window.scrollTo(0, 0);
+            }, 500);
+        });
+    </script>
+</body>
+</html>
